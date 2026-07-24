@@ -44,6 +44,7 @@ class ProfileChecker(QObject if PYQT_AVAILABLE else object):
         self.processed_files = set()
         self.auto_switch = False
         self.prompt_user = True
+        self.has_prompted_for_project = False
         self.is_active = False
 
     def initialize(self):
@@ -174,6 +175,11 @@ class ProfileChecker(QObject if PYQT_AVAILABLE else object):
                 # File matches current project profile
                 return
 
+            # Kdenlive-style behavior: only prompt for the first video imported into the project
+            if self.has_prompted_for_project and not self.auto_switch:
+                log.info(f"SwitchProjectProfile skipping prompt for '{file_data.get('name')}': project profile choice already set for this project.")
+                return
+
             # Lookup file object to retrieve file profile
             if not file_obj:
                 file_id = file_data.get("id")
@@ -193,18 +199,24 @@ class ProfileChecker(QObject if PYQT_AVAILABLE else object):
                     main_win.actionProfile_trigger(file_profile)
                 return
 
-            # Prompt user
+            # Check if timeline already has clips placed
+            has_timeline_clips = len(proj.get("clips") or []) > 0
+
+            # Prompt user (Kdenlive style on first imported video mismatch)
             if self.prompt_user and PYQT_AVAILABLE:
                 self.show_switch_dialog(file_name, file_width, file_height, file_fps,
-                                         proj_width, proj_height, proj_fps, file_profile)
+                                         proj_width, proj_height, proj_fps, file_profile,
+                                         has_timeline_clips=has_timeline_clips)
 
         except Exception as ex:
             log.warning(f"SwitchProjectProfile error during file check: {ex}")
 
-    def show_switch_dialog(self, file_name, f_w, f_h, f_fps, p_w, p_h, p_fps, file_profile):
+    def show_switch_dialog(self, file_name, f_w, f_h, f_fps, p_w, p_h, p_fps, file_profile, has_timeline_clips=False):
         """
         Display a PyQt dialog asking the user if they want to switch project profile.
         """
+        self.has_prompted_for_project = True
+
         app = get_app()
         main_win = getattr(app, "window", None)
 
@@ -217,11 +229,18 @@ class ProfileChecker(QObject if PYQT_AVAILABLE else object):
 
         description_text = file_profile.info.description if hasattr(file_profile, "info") else "Matching Profile"
 
+        timeline_warning = (
+            "<br><br><span style='color: #d9534f;'>⚠️ <b>Note:</b> Clips already exist on the timeline. "
+            "Switching profiles mid-edit may shift clip cuts or frame alignment.</span>"
+            if has_timeline_clips else ""
+        )
+
         text = (
             f"<b>Imported Video Mismatch Detected</b><br><br>"
             f"The file <b>'{file_name}'</b> (<i>{video_info}</i>) does not match "
             f"your current project profile (<i>{current_info}</i>).<br><br>"
             f"Would you like to switch your project profile to <b>{description_text}</b>?"
+            f"{timeline_warning}"
         )
         dialog.setText(text)
 
