@@ -25,6 +25,7 @@ OpenShot_Plugins/
 │   ├── switch_project_profile.py # Core plugin engine and PyQt dialog
 │   ├── __init__.py                # Package init
 │   └── install_plugin.ps1         # PowerShell automated installer
+├── LICENSE                        # MIT License
 └── README.md                      # Repository documentation overview
 ```
 
@@ -69,3 +70,10 @@ This repository is designed to host multiple OpenShot plugins. To add a new plug
 2. Place all plugin implementation files inside that folder.
 3. (Optional) Include an `install_plugin.ps1` installer inside the plugin directory.
 4. Add an entry and description for your new plugin in this `README.md`.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE).
+
