@@ -26,11 +26,27 @@ Hooks into OpenShot's **Export Video** window (`Ctrl+E`). Whenever you open the 
   * **Pre-Selected Quality & Target:** Defaults to `MP4 (h.264 / aac)` container and `High Quality` preset automatically.
   * **Native FFmpeg Compatibility:** Utilizes OpenShot's official built-in profile definitions for max rendering stability.
 
-### 3. 🔌 [PluginViewer](./PluginViewer)
-Adds a clean **Installed Plug-ins** action under OpenShot's **Help** menu (**Help $\rightarrow$ 🔌 Installed Plug-ins**) to view the status and description of all currently installed custom plugins.
+### 3. 🧹 [CleanUnusedMedia](./CleanUnusedMedia)
+Scans the active project bin and identifies files that are not currently placed on any timeline track. Offers a 1-click cleanup to remove unused media and keep your project clutter-free.
 
 * **Key Features:**
-  * **Help Menu Integration:** Access plugin status anytime via OpenShot's native Help menu.
+  * **Smart Bin Scanner:** Compares imported files against timeline clips.
+  * **Review Before Removal:** Shows a list of identified unused files before removing them.
+  * **1-Click Cleanup:** Instantly removes unused media from your Project Files bin.
+
+### 4. 📋 [ExportFFmpegCommand](./ExportFFmpegCommand)
+Generates and extracts the exact, complete standalone `ffmpeg` CLI command line corresponding to your Export dialog settings or active project specifications. Copies the ready-to-run FFmpeg string straight to your Windows Clipboard.
+
+* **Key Features:**
+  * **Export Window Button:** Injects a **📋 Copy FFmpeg Command** button directly into OpenShot's Export Video dialog.
+  * **Tools Menu Action:** Access **Tools $\rightarrow$ 📋 Copy FFmpeg Command...** from the main menu bar.
+  * **1-Click Clipboard Copy:** Copies the complete, ready-to-run FFmpeg string directly to your clipboard.
+
+### 5. 🔌 [PluginViewer](./PluginViewer)
+Adds a clean **Installed Plug-ins** action under OpenShot's **Tools** menu (**Tools $\rightarrow$ 🔌 Installed Plug-ins...**) to view the status and description of all currently installed custom plugins.
+
+* **Key Features:**
+  * **Tools Menu Integration:** Access plugin status anytime via OpenShot's native Tools menu.
   * **Clean Plugin Summary:** Displays active plugin titles, statuses, and feature summaries in a polished popup.
 
 ---
@@ -48,8 +64,18 @@ OpenShot_Plugins/
 │   ├── __init__.py                # Package init
 │   ├── install_plugin.ps1         # PowerShell automated installer
 │   └── README.md                  # Plugin documentation
+├── CleanUnusedMedia/             # Clean Unused Media plugin
+│   ├── clean_unused_media.py    # Bin scanner & cleanup engine
+│   ├── __init__.py                # Package init
+│   ├── install_plugin.ps1         # PowerShell automated installer
+│   └── README.md                  # Plugin documentation
+├── ExportFFmpegCommand/          # Export FFmpeg Command plugin
+│   ├── export_ffmpeg_command.py # FFmpeg CLI command generator
+│   ├── __init__.py                # Package init
+│   ├── install_plugin.ps1         # PowerShell automated installer
+│   └── README.md                  # Plugin documentation
 ├── PluginViewer/                 # Installed Plug-ins viewer
-│   ├── plugin_viewer.py         # Help menu popout dialog
+│   ├── plugin_viewer.py         # Tools menu popout dialog
 │   ├── __init__.py                # Package init
 │   ├── install_plugin.ps1         # PowerShell automated installer
 │   └── README.md                  # Plugin documentation

@@ -14,13 +14,13 @@ import logging
 
 try:
     from PyQt5.QtCore import QObject, Qt
-    from PyQt5.QtWidgets import QMessageBox, QAction
+    from PyQt5.QtWidgets import QMessageBox, QAction, QMenu
     PYQT_AVAILABLE = True
 except ImportError:
     try:
         from PyQt6.QtCore import QObject, Qt
         from PyQt6.QtGui import QAction
-        from PyQt6.QtWidgets import QMessageBox
+        from PyQt6.QtWidgets import QMessageBox, QMenu
         PYQT_AVAILABLE = True
     except ImportError:
         PYQT_AVAILABLE = False
@@ -36,7 +36,7 @@ except ImportError:
 
 class PluginViewer(QObject if PYQT_AVAILABLE else object):
     """
-    Hooks into OpenShot's Help menu to display a simple popout dialog
+    Hooks into OpenShot's Tools menu to display a simple popout dialog
     listing all installed and active plugins.
     """
 
@@ -45,7 +45,7 @@ class PluginViewer(QObject if PYQT_AVAILABLE else object):
             super().__init__()
 
     def initialize(self):
-        """Register menu item in OpenShot MainWindow Help menu."""
+        """Register menu item in OpenShot MainWindow Tools menu."""
         if not OPENSHOT_AVAILABLE:
             return
 
@@ -53,35 +53,44 @@ class PluginViewer(QObject if PYQT_AVAILABLE else object):
             app = get_app()
             window = getattr(app, "window", None)
             if window and PYQT_AVAILABLE:
-                self.add_help_menu_item(window)
-                log.info("PluginViewer initialized and added to Help menu.")
+                self.add_tools_menu_item(window)
+                log.info("PluginViewer initialized and added to Tools menu.")
         except Exception as ex:
             log.warning(f"PluginViewer initialization error: {ex}")
 
-    def add_help_menu_item(self, window):
-        """Find Help menu and append 'Plug-ins' action."""
+    def add_tools_menu_item(self, window):
+        """Find or create top-level Tools menu (positioned BEFORE Help) and append action."""
         try:
             menu_bar = window.menuBar()
             if not menu_bar:
                 return
 
-            help_menu = None
-            for action in menu_bar.actions():
-                if "help" in action.text().lower() or "ayuda" in action.text().lower():
-                    help_menu = action.menu()
-                    break
+            help_action = None
+            tools_menu = None
 
-            if not help_menu:
-                help_menu = menu_bar.addMenu("Help")
+            for action in menu_bar.actions():
+                txt = action.text().lower().strip("& ")
+                if txt in ("tools", "tool", "herramientas"):
+                    tools_menu = action.menu()
+                    break
+                elif txt in ("help", "ayuda"):
+                    help_action = action
+
+            if not tools_menu:
+                tools_menu = QMenu("&Tools", window)
+                if help_action:
+                    menu_bar.insertMenu(help_action, tools_menu)
+                else:
+                    menu_bar.addMenu(tools_menu)
 
             # Check if action already exists
-            for action in help_menu.actions():
+            for action in tools_menu.actions():
                 if "plug-in" in action.text().lower() or "plugin" in action.text().lower():
                     return
 
-            plugins_action = help_menu.addAction("🔌 Installed Plug-ins")
+            plugins_action = tools_menu.addAction("🔌 Installed Plug-ins...")
             plugins_action.triggered.connect(self.show_installed_plugins_dialog)
-            log.info("PluginViewer added '🔌 Installed Plug-ins' action to Help menu.")
+            log.info("PluginViewer added '🔌 Installed Plug-ins...' action to Tools menu.")
         except Exception as ex:
             log.warning(f"PluginViewer failed to add menu item: {ex}")
 
@@ -106,9 +115,17 @@ class PluginViewer(QObject if PYQT_AVAILABLE else object):
             "<i>Status: Active</i><br>"
             "Auto-selects matching profile, MP4 container, and High Quality preset in Export window.<br>",
 
+            "<b>🧹 CleanUnusedMedia</b><br>"
+            "<i>Status: Active</i><br>"
+            "1-Click cleanup to remove unused media files from Project Files bin.<br>",
+
+            "<b>📋 ExportFFmpegCommand</b><br>"
+            "<i>Status: Active</i><br>"
+            "Generates and copies standalone FFmpeg CLI command lines to clipboard.<br>",
+
             "<b>🔌 PluginViewer</b><br>"
             "<i>Status: Active</i><br>"
-            "Displays installed plugin information in OpenShot Help menu."
+            "Displays installed plugin information in OpenShot Tools menu."
         ]
 
         dialog_text = (
